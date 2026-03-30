@@ -1,0 +1,108 @@
+.chat-input-container {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+.emoji-picker-wrapper {
+  position: absolute;
+  bottom: 70px;
+  right: 0;
+  z-index: 100;
+  box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.6);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  overflow: hidden;
+}
+
+.chat-form {
+  display: flex;
+  align-items: center;
+  background-color: rgba(24, 24, 27, 0.6);
+  border-radius: 99px;
+  padding: 0.35rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.chat-form:focus-within {
+  border-color: rgba(244, 63, 94, 0.5);
+  box-shadow: 0 0 0 2px rgba(244, 63, 94, 0.2), inset 0 2px 4px rgba(0, 0, 0, 0.2);
+  background-color: rgba(24, 24, 27, 0.8);
+}
+
+.emoji-btn {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  padding: 0.6rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  border-radius: 50%;
+  transition: all 0.2s;
+}
+
+.emoji-btn:hover {
+  color: #fff;
+  background-color: rgba(255, 255, 255, 0.1);
+  transform: scale(1.05);
+}
+
+.chat-field {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: #fff;
+  padding: 0.5rem 0.5rem;
+  font-size: 0.95rem;
+  font-family: inherit;
+  outline: none;
+}
+
+.chat-field::placeholder {
+  color: rgba(255, 255, 255, 0.3);
+}
+
+.send-btn {
+  background: linear-gradient(135deg, #f43f5e, #e11d48);
+  color: #fff;
+  border: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1px solid rgba(244, 63, 94, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  box-shadow: 0 4px 12px rgba(229, 49, 112, 0.3);
+}
+
+.send-btn:disabled {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: transparent;
+  color: rgba(255, 255, 255, 0.3);
+  cursor: not-allowed;
+  box-shadow: none;
+  transform: scale(1);
+}
+
+.send-btn:not(:disabled):hover {
+  transform: scale(1.1) translateY(-1px);
+  box-shadow: 0 6px 16px rgba(229, 49, 112, 0.5);
+}
+
+.chat-login-prompt {
+  text-align: center;
+  padding: 1.25rem;
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(37, 99, 235, 0.05));
+  border-radius: 12px;
+  border: 1px dashed rgba(59, 130, 246, 0.4);
+  color: #60a5fa;
+  font-weight: 600;
+  font-size: 0.95rem;
+  box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.2);
+}
