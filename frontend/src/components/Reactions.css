@@ -1,65 +1,93 @@
-.reactions-container {
+/* ─── Root ──────────────────────────────────────────────── */
+.rx-root {
+  position: relative;
   display: flex;
   flex-direction: column;
+  gap: 0;
+}
+
+/* ─── Float Layer ───────────────────────────────────────── */
+.rx-float-layer {
   position: absolute;
-  bottom: calc(100% + 10px);
-  right: 1.5rem;
-  z-index: 50;
+  bottom: 100%;
+  left: 0;
+  width: 100%;
+  height: 240px;
   pointer-events: none;
+  overflow: visible;
 }
 
-.reaction-animations-layer {
-  position: relative;
-  width: 120px;
-  height: 250px;
-}
-
-.floating-emoji {
+/* Each floating emoji */
+.rx-floater {
   position: absolute;
   bottom: 0;
-  font-size: 2rem;
-  animation: floatUpEpic 3s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
-  opacity: 0;
-  pointer-events: none;
-  filter: drop-shadow(0 4px 12px rgba(0,0,0,0.6));
+  left: 50%;
+  font-size: 1.6rem;
+  display: block;
+  line-height: 1;
+  transform-origin: center bottom;
+  /* Use CSS var for drift + random start offset */
+  animation: rxFloat 3s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+  will-change: transform, opacity;
+  filter: drop-shadow(0 4px 16px rgba(0,0,0,0.5));
 }
 
-@keyframes floatUpEpic {
-  0% { transform: translateY(20px) scale(0.5); opacity: 0; }
-  10% { transform: translateY(0) scale(1.2); opacity: 1; }
-  50% { transform: translateY(-80px) scale(1.5); opacity: 0.9; }
-  100% { transform: translateY(-200px) scale(2.2); opacity: 0; }
+@keyframes rxFloat {
+  0% {
+    transform: translateX(calc(-50% + var(--drift, 0px))) translateY(0) scale(0.4);
+    opacity: 0;
+  }
+  8% {
+    transform: translateX(calc(-50% + var(--drift, 0px) * 0.3)) translateY(-10px) scale(1.3);
+    opacity: 1;
+  }
+  30% {
+    transform: translateX(calc(-50% + var(--drift, 0px) * 0.7)) translateY(-70px) scale(1.1);
+    opacity: 1;
+  }
+  65% {
+    transform: translateX(calc(-50% + var(--drift, 0px))) translateY(-150px) scale(1.4);
+    opacity: 0.8;
+  }
+  100% {
+    transform: translateX(calc(-50% + var(--drift, 0px) * 1.4)) translateY(-240px) scale(0.7);
+    opacity: 0;
+  }
 }
 
-.reaction-buttons-bar {
+/* ─── Reaction Bar ──────────────────────────────────────── */
+.rx-bar {
   display: flex;
-  gap: 0.8rem;
-  padding: 0.75rem 1rem;
-  border-radius: 99px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
-  pointer-events: auto;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  background: rgba(24, 24, 27, 0.6);
+  align-items: center;
+  gap: 4px;
+  padding-bottom: 2px;
 }
 
-.reaction-btn {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
-  font-size: 1.5rem;
+/* ─── Button ────────────────────────────────────────────── */
+.rx-btn {
+  flex: 1;
+  height: 40px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
   cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  font-size: 1.25rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  transition:
+    transform 0.18s var(--spring),
+    background 0.15s,
+    box-shadow 0.15s;
+  /* Staggered entrance */
+  animation: popIn 0.35s var(--spring) calc(var(--i, 0) * 40ms) both;
 }
-
-.reaction-btn:hover {
-  transform: scale(1.25) translateY(-4px);
-  background: rgba(255, 255, 255, 0.15);
-  border-color: rgba(255, 255, 255, 0.3);
-  box-shadow: 0 8px 24px rgba(244, 63, 94, 0.4);
+.rx-btn:active {
+  transform: scale(0.82);
+  background: rgba(255,45,85,0.12);
+  box-shadow: 0 0 14px rgba(255,45,85,0.3);
+}
+.rx-btn:hover {
+  background: var(--surface-2);
+  transform: scale(1.12) translateY(-2px);
 }

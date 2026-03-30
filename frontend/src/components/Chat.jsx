@@ -1,88 +1,114 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { formatRelative } from 'date-fns';
-import { ShieldAlert } from 'lucide-react';
+import { socket } from '../socket';
 import ChatInput from './ChatInput';
 import Reactions from './Reactions';
-import { socket } from '../socket';
 import './Chat.css';
 
 const Chat = ({ user }) => {
-  const [messages, setMessages] = useState([]);
-  const messagesEndRef = useRef(null);
+  const [messages, setMessages]     = useState([]);
+  const [joinNote, setJoinNote]     = useState(null);
+  const listRef                     = useRef(null);
+  const prevLen                     = useRef(0);
 
   useEffect(() => {
-    // Listen for chat history on connection
-    socket.on('chat_history', (history) => {
-      setMessages(history);
+    socket.on('chat_history', (h) => setMessages(h));
+    socket.on('receive_message', (m) =>
+      setMessages(prev => [...prev.slice(-99), m])
+    );
+    socket.on('viewer_count_update', (n) => {
+      if (n > 1) {
+        setJoinNote(`${n} viewers watching!`);
+        setTimeout(() => setJoinNote(null), 3000);
+      }
     });
-
-    // Listen for new incoming messages
-    socket.on('receive_message', (newMsg) => {
-      setMessages((prev) => [...prev, newMsg]);
-    });
-
     return () => {
       socket.off('chat_history');
       socket.off('receive_message');
+      socket.off('viewer_count_update');
     };
   }, []);
 
+  // Smooth auto-scroll
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if (messages.length > prevLen.current && listRef.current) {
+      listRef.current.scrollTo({ top: listRef.current.scrollHeight, behavior: 'smooth' });
+    }
+    prevLen.current = messages.length;
   }, [messages]);
 
-  const sendMessage = (text) => {
+  const send = (text) => {
     if (!text.trim() || !user) return;
-    
-    const messageData = {
+    socket.emit('send_message', {
       text,
       uid: user.uid,
       displayName: user.displayName,
       photoURL: user.photoURL,
-      isAdmin: false, // Set this correctly via custom claims if needed later
-      createdAt: Date.now()
-    };
-    
-    socket.emit('send_message', messageData);
+      isAdmin: false,
+      createdAt: Date.now(),
+    });
   };
 
-  const formatDate = (dateNum) => {
-    if (!dateNum) return '';
-    return formatRelative(new Date(dateNum), new Date());
+  const fmt = (ts) => {
+    try { return formatRelative(new Date(ts), new Date()); }
+    catch { return ''; }
   };
 
   return (
-    <div className="chat-container glass-panel">
-      <div className="chat-header">
-        <h3>Live Chat</h3>
-        <div className="live-status">
-          <span className="dot"></span>
-          <span>Real-time</span>
-        </div>
+    <div className="chat-root">
+      {/* Header strip */}
+      <div className="chat-hdr">
+        <span className="chat-hdr-title">Live Chat</span>
+        <span className="chat-hdr-pill">
+          <span className="chat-hdr-dot" />
+          Real-time
+        </span>
       </div>
-      
-      <div className="chat-messages custom-scrollbar">
-        {messages.map((msg) => (
-          <div key={msg.id} className={`message ${msg.isAdmin ? 'admin-msg' : ''}`}>
-            <img src={msg.photoURL || 'https://api.dicebear.com/7.x/avataaars/svg?seed=fallback'} alt="user" className="msg-avatar" />
-            <div className="msg-content">
-              <div className="msg-header">
+
+      {/* Join notification */}
+      {joinNote && (
+        <div className="chat-join-note" key={joinNote}>
+          🔴 {joinNote}
+        </div>
+      )}
+
+      {/* Message list */}
+      <div className="chat-list" ref={listRef}>
+        {messages.length === 0 && (
+          <div className="chat-empty">
+            <span>💬</span>
+            <p>Be the first to chat!</p>
+          </div>
+        )}
+        {messages.map((m, i) => (
+          <div
+            key={m.id || i}
+            className={`msg-row ${m.isAdmin ? 'msg-admin' : ''}`}
+            style={{ animationDelay: `${Math.min(i * 0.02, 0.1)}s` }}
+          >
+            <img
+              src={m.photoURL || `https://api.dicebear.com/7.x/avataaars/svg?seed=${m.uid}`}
+              alt=""
+              className="msg-avatar"
+            />
+            <div className="msg-body">
+              <div className="msg-meta">
                 <span className="msg-name">
-                  {msg.displayName}
-                  {msg.isAdmin && <ShieldAlert size={14} className="admin-icon" />}
+                  {m.displayName}
+                  {m.isAdmin && <span className="msg-badge-admin">ADMIN</span>}
                 </span>
-                <span className="msg-time">{formatDate(msg.createdAt)}</span>
+                <span className="msg-time">{fmt(m.createdAt)}</span>
               </div>
-              <p className="msg-text">{msg.text}</p>
+              <div className="msg-bubble">{m.text}</div>
             </div>
           </div>
         ))}
-        <div ref={messagesEndRef} />
       </div>
 
-      <div className="chat-input-wrapper">
+      {/* Bottom: reactions + input */}
+      <div className="chat-footer glass">
         <Reactions user={user} />
-        <ChatInput user={user} onSend={sendMessage} />
+        <ChatInput user={user} onSend={send} />
       </div>
     </div>
   );

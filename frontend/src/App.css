@@ -1,20 +1,14 @@
-.fullscreen-loader {
+.app-shell {
   display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
-  background-color: var(--bg-primary);
+  flex-direction: column;
+  height: 100dvh;
+  overflow: hidden;
 }
 
-.loader-ring {
-  width: 60px;
-  height: 60px;
-  border: 6px solid rgba(229, 49, 112, 0.2);
-  border-top-color: var(--accent-red);
-  border-radius: 50%;
-  animation: spinner 1s linear infinite;
-}
-
-@keyframes spinner {
-  to { transform: rotate(360deg); }
+.app-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-height: 0;
 }
