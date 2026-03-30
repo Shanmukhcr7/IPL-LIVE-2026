@@ -25,6 +25,58 @@ try {
 // ─── Express + Socket.io ──────────────────────────────────
 const app    = express();
 app.use(cors({ origin: '*' }));
+app.use(express.json());
+
+// ─── Reverse Proxy ────────────────────────────────────────
+// Strips X-Frame-Options + CSP frame-ancestors so iframes work
+// from ANY device without browser blocking.
+app.get('/proxy', async (req, res) => {
+  const { url } = req.query;
+  if (!url) return res.status(400).send('Missing ?url=');
+
+  try {
+    const upstream = await fetch(url, {
+      headers: {
+        'User-Agent':
+          'Mozilla/5.0 (Linux; Android 13; Pixel 7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36',
+        'Referer': url,
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+      },
+    });
+
+    const contentType = upstream.headers.get('content-type') || 'text/html';
+
+    // Strip blocking headers — set permissive ones instead
+    res.set({
+      'Content-Type': contentType,
+      'Access-Control-Allow-Origin': '*',
+      // Explicitly DO NOT forward X-Frame-Options or CSP
+    });
+
+    if (contentType.includes('text/html')) {
+      let html = await upstream.text();
+
+      // Inject <base> so all relative URLs (CSS, JS, images) resolve correctly
+      const baseTag = `<base href="${url}">`;
+      if (html.includes('<head>'))      html = html.replace('<head>',  `<head>${baseTag}`);
+      else if (html.includes('<HEAD>')) html = html.replace('<HEAD>',  `<head>${baseTag}`);
+      else                              html = baseTag + html;
+
+      // Remove any meta X-Frame-Options tags the page may include
+      html = html.replace(/<meta[^>]+x-frame-options[^>]*>/gi, '');
+
+      res.send(html);
+    } else {
+      // Binary assets (images, fonts, JS, CSS) — stream through
+      const buffer = await upstream.arrayBuffer();
+      res.send(Buffer.from(buffer));
+    }
+  } catch (err) {
+    console.error('Proxy error:', err.message);
+    res.status(502).send(`Proxy failed: ${err.message}`);
+  }
+});
+
 
 const server = http.createServer(app);
 const io     = new Server(server, {
