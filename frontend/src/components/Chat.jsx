@@ -16,15 +16,21 @@ const Chat = ({ user }) => {
     socket.on('receive_message', (m) =>
       setMessages(prev => [...prev.slice(-99), m])
     );
+    socket.on('chat_cleared', () => {
+      setMessages([]);
+      setJoinNote('🗑️ Chat cleared for a new day!');
+      setTimeout(() => setJoinNote(null), 4000);
+    });
     socket.on('viewer_count_update', (n) => {
       if (n > 1) {
-        setJoinNote(`${n} viewers watching!`);
+        setJoinNote(`👥 ${n} viewers watching!`);
         setTimeout(() => setJoinNote(null), 3000);
       }
     });
     return () => {
       socket.off('chat_history');
       socket.off('receive_message');
+      socket.off('chat_cleared');
       socket.off('viewer_count_update');
     };
   }, []);

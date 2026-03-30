@@ -2,31 +2,19 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-    
-    // Chat messages rules
+
+    // Chat messages
     match /messages/{messageId} {
-      // Anyone can read messages
+      // Anyone can read (for future direct Firestore reads)
       allow read: if true;
-      // Only authenticated users can write messages
-      // Message must have text and user uid matching the auth uid
-      allow create: if request.auth != null 
-                    && request.resource.data.text is string
-                    && request.resource.data.text.trim().size() > 0
-                    && request.resource.data.uid == request.auth.uid;
-      // No updates or deletes allowed
-      allow update, delete: if false;
+      // Only server-side (Admin SDK bypasses rules) — block all client writes
+      allow write: if false;
     }
 
-    // Reactions rules
+    // Reactions (not persisted, but rule kept for safety)
     match /reactions/{reactionId} {
-      // Anyone can read reactions
       allow read: if true;
-      // Only authenticated users can write reactions
-      allow create: if request.auth != null
-                    && request.resource.data.emoji is string
-                    && request.resource.data.uid == request.auth.uid;
-      // No updates or deletes allowed
-      allow update, delete: if false;
+      allow write: if false;
     }
   }
 }
