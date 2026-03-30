@@ -28,63 +28,108 @@
   pointer-events: none;
 }
 
-/* ─── Blocked Fallback ──────────────────────────────────── */
-.vp-blocked {
+/* ─── Unified screen (mobile / blocked / redirecting) ──── */
+.vp-screen {
   position: absolute;
   inset: 0;
   z-index: 4;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(8,8,8,0.97);
-  padding: 24px;
+  background: linear-gradient(160deg, #0d0d0d 0%, #110a14 100%);
+  padding: 20px;
 }
-.vp-blocked-inner {
+.vp-redirecting {
+  background: linear-gradient(160deg, #100008 0%, #1a0015 100%);
+}
+.vp-screen-inner {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 10px;
   text-align: center;
-  max-width: 280px;
+  max-width: 300px;
+  animation: popIn 0.3s var(--spring) both;
 }
-.vp-blocked-icon { font-size: 2.5rem; }
-.vp-blocked-title {
-  font-size: 0.95rem;
-  font-weight: 700;
+.vp-screen-icon { font-size: 2.2rem; line-height: 1; }
+.vp-screen-title {
+  font-size: 1rem;
+  font-weight: 800;
   color: #fff;
+  margin-top: 2px;
 }
-.vp-blocked-sub {
+.vp-screen-sub {
   font-size: 0.78rem;
   color: var(--text-2);
-  line-height: 1.5;
+  line-height: 1.55;
 }
-.vp-open-btn {
+
+/* Countdown ring */
+.vp-countdown-ring {
+  width: 64px; height: 64px;
+  border-radius: 50%;
+  border: 3px solid rgba(255,45,85,0.25);
+  border-top-color: var(--red);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: spin 1s linear infinite;
+  box-shadow: 0 0 20px rgba(255,45,85,0.3);
+}
+.vp-countdown-num {
+  font-size: 1.4rem;
+  font-weight: 900;
+  color: var(--red);
+  animation: none; /* counter-spin would look odd */
+}
+
+/* Buttons */
+.vp-primary-btn {
   margin-top: 6px;
   background: linear-gradient(135deg, var(--red), #c2185b);
   color: #fff;
   border: none;
-  padding: 12px 24px;
+  padding: 13px 28px;
   border-radius: 24px;
-  font-size: 0.9rem;
+  font-size: 0.92rem;
   font-weight: 800;
   cursor: pointer;
   box-shadow: 0 6px 20px rgba(255,45,85,0.45);
   transition: transform 0.15s var(--spring), box-shadow 0.15s;
+  width: 100%;
   letter-spacing: 0.2px;
 }
-.vp-open-btn:active { transform: scale(0.94); }
-.vp-retry-link {
-  background: none;
-  border: none;
-  color: var(--text-2);
-  font-size: 0.75rem;
-  cursor: pointer;
-  text-decoration: underline;
-  padding: 4px;
+.vp-primary-btn:active {
+  transform: scale(0.95);
+  box-shadow: 0 2px 8px rgba(255,45,85,0.3);
 }
 
-/* ─── External link ctrl button ─────────────────────────── */
-.vp-ctrl-direct { border-color: rgba(10,132,255,0.4); }
+.vp-ghost-btn {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid var(--border);
+  color: rgba(255,255,255,0.75);
+  padding: 10px 20px;
+  border-radius: 20px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  width: 100%;
+  transition: background 0.2s, transform 0.15s;
+}
+.vp-ghost-btn:active { transform: scale(0.95); }
+
+.vp-text-btn {
+  background: none;
+  border: none;
+  color: var(--text-3);
+  font-size: 0.74rem;
+  cursor: pointer;
+  padding: 4px 8px;
+  text-decoration: underline;
+  transition: color 0.2s;
+}
+.vp-text-btn:hover { color: var(--text-2); }
+
 
 
 /* ─── Skeleton / Loading ────────────────────────────────── */
