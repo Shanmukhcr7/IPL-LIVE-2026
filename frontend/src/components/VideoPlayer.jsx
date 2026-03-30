@@ -1,11 +1,51 @@
 import React, { useState, useRef, useEffect } from 'react';
 import './VideoPlayer.css';
 
+// ─── All available streams ───────────────────────────────
 const STREAMS = [
-  { id: 'telugu',  label: '🇮🇳 Telugu',  url: 'https://allrounder-live.pages.dev/star/telugu' },
-  { id: 'english', label: '🌍 English', url: 'https://allrounder-live2.pages.dev/channel/hotstar' },
-  { id: 'hindi',   label: '🇮🇳 Hindi',   url: 'https://allrounder-live2.pages.dev/star/star-1-hindi' },
+  // 🇮🇳 Indian
+  { id: 'telugu',     cat: '🇮🇳 Indian',       label: '⭐ Star Telugu',       url: 'https://allrounder-live.pages.dev/star/telugu' },
+  { id: 'hindi',      cat: '🇮🇳 Indian',       label: '⭐ Star Hindi',        url: 'https://allrounder-live2.pages.dev/star/star-1-hindi' },
+  { id: 'tamil',      cat: '🇮🇳 Indian',       label: '⭐ Star Tamil',        url: 'https://allrounder-live.pages.dev/star/tamil-1' },
+  { id: 'eng',        cat: '🇮🇳 Indian',       label: '⭐ Star Select',       url: 'https://allrounder-live.pages.dev/star/star-1' },
+  { id: 'jio-hotstar',cat: '🇮🇳 Indian',       label: '🔵 Jio Hotstar',       url: 'https://allrounder-live2.pages.dev/channel/hotstar' },
+  { id: 'hotstar',    cat: '🇮🇳 Indian',       label: '🔵 Hotstar',           url: 'https://allrounderlive.pages.dev/dilz?id=dillzy645' },
+  { id: 'sony',       cat: '🇮🇳 Indian',       label: '🎬 Sony',              url: 'https://allrounderlive.pages.dev/sonyliv/sonyliv-1' },
+  { id: 'sony-3',     cat: '🇮🇳 Indian',       label: '🎬 Sony Ten 5',        url: 'https://cricketstan.github.io/Sony-ten-5/' },
+  { id: 'prime-hin',  cat: '🇮🇳 Indian',       label: '🟠 Prime Hindi',       url: 'https://allrounder-live.pages.dev/channel/prame-hin.html' },
+  { id: 'prime-eng',  cat: '🇮🇳 Indian',       label: '🟠 Prime English',     url: 'https://allrounder-live.pages.dev/channel/prame.html' },
+  { id: 'fancode',    cat: '🇮🇳 Indian',       label: '🏏 FanCode',           url: 'https://allrounder-live.pages.dev/fancode-player?url=https://in-mc-flive.fancode.com/mumbai/141407_english_hls_ab5ff6c24a21542_1ta-di_h264/1080p.m3u8?hdntl=Expires=1773474245~_GO=Generated~acl=/mumbai/141407_english_hls_ab5ff6c24a21542_1ta-di_h264/*~Signature=AR77L-Yyr9Cdj5X_0so3HpmxTUDWXrASgqUxhTGBOrJaU6SPgB5oUrj5FOVZ7FqeaDZnyCZIHYhGDYKbrr-wcsI214oJ' },
+  { id: 'myco',       cat: '🇮🇳 Indian',       label: '📡 Myco',              url: 'https://allrounder-rho.vercel.app/channel/myco.html' },
+  { id: 'cricbuzz',   cat: '🇮🇳 Indian',       label: '📊 Cricbuzz',          url: 'https://allroundersd.pages.dev/cricbuzz1.html' },
+
+  // 🌍 International
+  { id: 'fox',        cat: '🌍 International', label: '🦊 Fox Cricket 501',   url: 'https://allrounder-live2.pages.dev/channel/fox' },
+  { id: 'fox-hd',     cat: '🌍 International', label: '🦊 Fox Cricket HD',    url: 'https://cricketstan.github.io/Fox-Cricket-/' },
+  { id: 'tnt',        cat: '🌍 International', label: '⚡ TNT Sports',        url: 'https://allrounder-live2.pages.dev/channel/tnt-2' },
+  { id: 'tnt-1',      cat: '🌍 International', label: '⚡ TNT Sports 1',      url: 'https://cricketstan.github.io/TNT-1/' },
+  { id: 'willow',     cat: '🌍 International', label: '🌿 Willow',            url: 'https://allrounder-live2.pages.dev/channel/willow' },
+  { id: 'willow-2',   cat: '🌍 International', label: '🌿 Willow 2',          url: 'https://allrounderlive.pages.dev/willow2' },
+  { id: 'willow-sports', cat: '🌍 International', label: '🌿 Willow Sports',  url: 'https://cricketstan.github.io/Willow-Sports/' },
+  { id: 'sky-uk',     cat: '🌍 International', label: '🌤 Sky UK',            url: 'https://allroundersd.pages.dev/channel/sky-uk' },
+  { id: 'sky-sports-nz', cat: '🌍 International', label: '🌤 Sky NZ',        url: 'https://cricketstan.github.io/Sky-sports-nz-/' },
+  { id: 'sky-nz-1',   cat: '🌍 International', label: '🌤 Sky NZ Live',      url: 'https://crickettv.site/sky-nz/player?id=3' },
+  { id: 'channel-7',  cat: '🌍 International', label: '7️⃣ 7Plus Cricket',    url: 'https://allrounderlive.pages.dev/player?url=https://hugh.cdn.rumble.cloud/live/gi29le7p/slot-139/bx1o-9vac_720p/chunklist.m3u8' },
+  { id: 'prime-nz',   cat: '🌍 International', label: '🟣 Prime NZ',         url: 'https://hff-cricketstan.wasmer.app/' },
+  { id: 'asiacup',    cat: '🌍 International', label: '🏆 Asia Cup',          url: 'https://allrounderlive.pages.dev/player?url=https://d3ssd0juqbxbw.cloudfront.net/mtvsinstlive/master.m3u8' },
+  { id: 'ptv',        cat: '🌍 International', label: '📺 PTV Sports',        url: 'https://allrounder-live2.pages.dev/channel/ptv' },
+  { id: 'zee',        cat: '🌍 International', label: '📺 Zee Cinema',        url: 'https://zee-seven.vercel.app/' },
+  { id: 'youtube',    cat: '🌍 International', label: '▶️ YouTube',           url: 'https://www.youtube.com/embed/C2HtKCVQ6B0' },
+
+  // ⚡ Extra
+  { id: 'hub',        cat: '⚡ Extra',         label: '📡 Hub 5',             url: 'https://allrounder-live.pages.dev/channel/hub5' },
+  { id: 'wpl',        cat: '⚡ Extra',         label: '🏏 Cric Life',         url: 'https://allrounderlive.pages.dev/cric-life' },
+  { id: 'alt',        cat: '⚡ Extra',         label: '⚡ Dillzy',            url: 'https://allrounderlive.pages.dev/player?url=https://dillzy.cricketstream745.workers.dev/live.m3u8' },
+  { id: 'ios',        cat: '⚡ Extra',         label: '🍎 Willow Plus',        url: 'https://allrounderlive.pages.dev/player4?url=https://amg01269-amg01269c1-sportstribal-emea-5204.playouts.now.amagi.tv/playlist/amg01269-willowtvfast-willowplus-sportstribalemea/playlist.m3u8' },
 ];
+
+// Group streams by category
+const CATEGORIES = [...new Set(STREAMS.map(s => s.cat))];
+
 
 const VideoPlayer = () => {
   const [active, setActive]         = useState(STREAMS[0]);
@@ -152,20 +192,45 @@ const VideoPlayer = () => {
         )}
       </div>
 
-      {/* Language pills */}
+      {/* Stream Selector */}
       <div className="vp-controls glass">
-        <label className="vp-lang-label">🌐 Language</label>
-        <div className="vp-lang-pills">
-          {STREAMS.map(s => (
-            <button
-              key={s.id}
-              className={`vp-pill ripple ${active.id === s.id ? 'active' : ''}`}
-              onClick={() => switchStream(s)}
-            >
-              {s.label}
-            </button>
-          ))}
-        </div>
+        <StreamSelector active={active} onSwitch={switchStream} />
+      </div>
+    </div>
+  );
+};
+
+// ─── Stream Selector Sub-component ──────────────────────
+const StreamSelector = ({ active, onSwitch }) => {
+  const [activeCat, setActiveCat] = React.useState(active.cat);
+  const streamsInCat = STREAMS.filter(s => s.cat === activeCat);
+
+  return (
+    <div className="ss-root">
+      {/* Category tabs */}
+      <div className="ss-cats">
+        {CATEGORIES.map(cat => (
+          <button
+            key={cat}
+            className={`ss-cat-btn ripple ${activeCat === cat ? 'active' : ''}`}
+            onClick={() => setActiveCat(cat)}
+          >
+            {cat}
+          </button>
+        ))}
+      </div>
+      {/* Streams in selected category */}
+      <div className="ss-streams">
+        {streamsInCat.map(s => (
+          <button
+            key={s.id}
+            className={`ss-stream-btn ripple ${active.id === s.id ? 'active' : ''}`}
+            onClick={() => onSwitch(s)}
+          >
+            {s.label}
+            {active.id === s.id && <span className="ss-active-dot" />}
+          </button>
+        ))}
       </div>
     </div>
   );

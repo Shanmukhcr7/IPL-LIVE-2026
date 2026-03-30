@@ -188,35 +188,61 @@
 }
 .vp-ctrl-btn:active { transform: scale(0.88); }
 
-/* ─── Controls Bar ──────────────────────────────────────── */
-.vp-controls {
+/* ─── Stream Selector ───────────────────────────────────── */
+.ss-root {
   display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 14px;
-  border-radius: 0;
-  border-top: 1px solid var(--border);
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
 }
 
-.vp-lang-label {
-  font-size: 0.72rem;
-  font-weight: 600;
-  color: var(--text-2);
-  white-space: nowrap;
-  flex-shrink: 0;
-}
-
-.vp-lang-pills {
+/* Category tabs row */
+.ss-cats {
   display: flex;
   gap: 6px;
   overflow-x: auto;
   scrollbar-width: none;
   -ms-overflow-style: none;
 }
-.vp-lang-pills::-webkit-scrollbar { display: none; }
+.ss-cats::-webkit-scrollbar { display: none; }
 
-.vp-pill {
+.ss-cat-btn {
   flex-shrink: 0;
+  padding: 5px 12px;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-2);
+  font-size: 0.72rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s var(--ease);
+  white-space: nowrap;
+  letter-spacing: 0.2px;
+}
+.ss-cat-btn:active { transform: scale(0.94); }
+.ss-cat-btn.active {
+  background: var(--surface-2);
+  border-color: rgba(255,255,255,0.2);
+  color: #fff;
+}
+
+/* Streams row */
+.ss-streams {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  padding-bottom: 2px;
+}
+.ss-streams::-webkit-scrollbar { display: none; }
+
+.ss-stream-btn {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 5px;
   padding: 6px 14px;
   border-radius: 20px;
   border: 1px solid var(--border);
@@ -227,11 +253,28 @@
   cursor: pointer;
   transition: all 0.2s var(--ease);
   white-space: nowrap;
+  position: relative;
 }
-.vp-pill:active { transform: scale(0.94); }
-.vp-pill.active {
-  background: linear-gradient(135deg, rgba(255,45,85,0.2), rgba(191,90,242,0.15));
+.ss-stream-btn:active { transform: scale(0.94); }
+.ss-stream-btn.active {
+  background: linear-gradient(135deg, rgba(255,45,85,0.18), rgba(191,90,242,0.12));
   border-color: rgba(255,45,85,0.5);
   color: #fff;
-  box-shadow: 0 0 12px rgba(255,45,85,0.2);
+  box-shadow: 0 0 14px rgba(255,45,85,0.18);
+}
+.ss-active-dot {
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: var(--red);
+  box-shadow: 0 0 6px var(--red);
+  flex-shrink: 0;
+}
+
+/* Keep old vp-controls layout */
+.vp-controls {
+  display: flex;
+  flex-direction: column;
+  padding: 10px 14px;
+  border-top: 1px solid var(--border);
+  gap: 0;
 }
