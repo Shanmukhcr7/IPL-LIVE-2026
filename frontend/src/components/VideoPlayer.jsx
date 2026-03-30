@@ -1,13 +1,9 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import './VideoPlayer.css';
 
-// ─── Backend URL (proxy lives here) ──────────────────────
+// ─── Backend URL ──────────────────────────────────────────
 const BACKEND = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
-
-// Build a proxied URL — served from our own backend, so
-// the browser sees no X-Frame-Options from the original site.
-const proxyUrl = (url) =>
-  `${BACKEND}/proxy?url=${encodeURIComponent(url)}`;
+const proxyUrl = (url) => `${BACKEND}/proxy?url=${encodeURIComponent(url)}`;
 
 // ─── All streams ──────────────────────────────────────────
 const STREAMS = [
@@ -53,32 +49,46 @@ const CATEGORIES = [...new Set(STREAMS.map(s => s.cat))];
 
 // ─── VideoPlayer ──────────────────────────────────────────
 const VideoPlayer = () => {
-  const [active, setActive]     = useState(STREAMS[0]);
+  const [active, setActive]       = useState(STREAMS[0]);
   const [iframeKey, setIframeKey] = useState(0);
-  // phase: loading | playing | error
-  const [phase, setPhase]       = useState('loading');
-  const [showCtrl, setShowCtrl] = useState(false);
-  const blockTimer              = useRef(null);
-  const ctrlTimer               = useRef(null);
-  const playerRef               = useRef(null);
+  const [phase, setPhase]         = useState('loading'); // loading | playing | error
+  const [src, setSrc]             = useState('direct');  // direct | proxy
+  const [showCtrl, setShowCtrl]   = useState(false);
+  const blockTimer                = useRef(null);
+  const ctrlTimer                 = useRef(null);
+  const playerRef                 = useRef(null);
 
-  // ── When stream switches, reset ────────────────────────
+  // Current iframe src: try direct first, proxy as fallback
+  const iframeSrc = src === 'proxy' ? proxyUrl(active.url) : active.url;
+
+  // ── Switch stream ─────────────────────────────────────
   const switchStream = useCallback((s) => {
     if (s.id === active.id) return;
     clearTimeout(blockTimer.current);
     setActive(s);
+    setSrc('direct');
     setPhase('loading');
     setIframeKey(k => k + 1);
   }, [active.id]);
 
-  // ── Start block-detection timer ────────────────────────
+  // ── Timer logic: direct → proxy → error ──────────────
   useEffect(() => {
     clearTimeout(blockTimer.current);
     setPhase('loading');
-    // Give the proxy 12s — it needs to fetch remotely
-    blockTimer.current = setTimeout(() => setPhase('error'), 12000);
+
+    if (src === 'direct') {
+      // 8s: direct didn't fire onLoad → try proxy
+      blockTimer.current = setTimeout(() => {
+        setSrc('proxy');
+        setIframeKey(k => k + 1);
+      }, 8000);
+    } else {
+      // 12s: proxy also failed → show error
+      blockTimer.current = setTimeout(() => setPhase('error'), 12000);
+    }
+
     return () => clearTimeout(blockTimer.current);
-  }, [iframeKey]);
+  }, [iframeKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleLoad = () => {
     clearTimeout(blockTimer.current);
@@ -87,6 +97,7 @@ const VideoPlayer = () => {
 
   const retry = () => {
     clearTimeout(blockTimer.current);
+    setSrc('direct');
     setPhase('loading');
     setIframeKey(k => k + 1);
   };
@@ -111,38 +122,55 @@ const VideoPlayer = () => {
     else document.exitFullscreen?.();
   };
 
-  // Proxied src — served from our backend, no X-Frame-Options
-  const iframeSrc = proxyUrl(active.url);
-
   return (
     <div className="vp-root">
       <div className="vp-wrapper" ref={playerRef} onClick={tapPlayer}>
 
-        {/* Loading skeleton */}
-        {phase === 'loading' && <LoadingSkeleton />}
+        {/* Skeleton — shows while loading, z-index 2 (above iframe) */}
+        {phase === 'loading' && (
+          <div className="vp-skeleton">
+            <div className="vp-skeleton-shimmer" />
+            <div className="vp-loading-tag">
+              <span className="vp-spinner" />
+              {src === 'proxy' ? 'Connecting via proxy…' : 'Loading stream…'}
+            </div>
+          </div>
+        )}
 
         {/* Error screen */}
         {phase === 'error' && (
-          <ErrorScreen stream={active} onRetry={retry} />
+          <div className="vp-screen">
+            <div className="vp-screen-inner">
+              <div className="vp-screen-icon">⚠️</div>
+              <p className="vp-screen-title">Stream unavailable</p>
+              <p className="vp-screen-sub">
+                <strong>{active.label}</strong> couldn't load.
+                Try another stream or retry.
+              </p>
+              <button className="vp-primary-btn ripple" onClick={retry}>
+                ↺ Retry
+              </button>
+            </div>
+          </div>
         )}
 
-        {/* The iframe — always via our proxy */}
+        {/* iframe — NO sandbox attribute, full permissions for video */}
         <iframe
           key={iframeKey}
           src={iframeSrc}
           className={`vp-iframe ${phase === 'playing' ? 'vp-iframe-visible' : 'vp-iframe-hidden'}`}
-          allow="autoplay; encrypted-media; fullscreen; picture-in-picture"
+          allow="autoplay; encrypted-media; fullscreen; picture-in-picture; clipboard-write; web-share"
           allowFullScreen
           loading="eager"
           onLoad={handleLoad}
-          sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-presentation"
         />
 
-        {/* Tap controls */}
+        {/* Controls overlay — only when playing */}
         {phase === 'playing' && (
           <div className={`vp-overlay ${showCtrl ? 'visible' : ''}`}>
             <div className="vp-overlay-top">
               <span className="badge-live">LIVE</span>
+              {src === 'proxy' && <span className="vp-proxy-badge">proxy</span>}
             </div>
             <div className="vp-overlay-bottom">
               <button className="vp-ctrl-btn" onClick={e => { e.stopPropagation(); retry(); }} title="Reload">
@@ -166,32 +194,6 @@ const VideoPlayer = () => {
     </div>
   );
 };
-
-// ─── Screens ──────────────────────────────────────────────
-const LoadingSkeleton = () => (
-  <div className="vp-skeleton">
-    <div className="vp-skeleton-shimmer" />
-    <div className="vp-loading-tag">
-      <span className="vp-spinner" />
-      Loading stream…
-    </div>
-  </div>
-);
-
-const ErrorScreen = ({ stream, onRetry }) => (
-  <div className="vp-screen">
-    <div className="vp-screen-inner">
-      <div className="vp-screen-icon">⚠️</div>
-      <p className="vp-screen-title">Stream unavailable</p>
-      <p className="vp-screen-sub">
-        <strong>{stream.label}</strong> couldn't be loaded. Try a different stream or retry.
-      </p>
-      <button className="vp-primary-btn ripple" onClick={onRetry}>
-        ↺ Retry
-      </button>
-    </div>
-  </div>
-);
 
 // ─── Stream Selector ─────────────────────────────────────
 const StreamSelector = ({ active, onSwitch }) => {

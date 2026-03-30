@@ -22,6 +22,13 @@
   height: 100%;
   border: none;
   display: block;
+  z-index: 1;
+}
+/* Explicitly visible — skeleton (z-index 3) sits on top until removed */
+.vp-iframe-visible {
+  opacity: 1;
+  pointer-events: auto;
+  z-index: 1;
 }
 .vp-iframe-hidden {
   opacity: 0;
@@ -136,8 +143,8 @@
 .vp-skeleton {
   position: absolute;
   inset: 0;
-  z-index: 3;
-  background: #111;
+  z-index: 2;  /* above iframe (z=1) but below overlay (z=4) */
+  background: #000;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -232,6 +239,20 @@
   transition: background 0.2s, transform 0.15s var(--spring);
 }
 .vp-ctrl-btn:active { transform: scale(0.88); }
+
+.vp-proxy-badge {
+  margin-left: 6px;
+  font-size: 0.6rem;
+  font-weight: 700;
+  background: rgba(10,132,255,0.25);
+  border: 1px solid rgba(10,132,255,0.4);
+  color: #60a5fa;
+  padding: 2px 7px;
+  border-radius: 10px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
 
 /* ─── Stream Selector ───────────────────────────────────── */
 .ss-root {
